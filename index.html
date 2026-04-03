@@ -2625,89 +2625,88 @@ body{font-family:'Microsoft YaHei UI','PingFang SC','Noto Sans SC','Microsoft Ya
   #rotate-hint{display:none !important}
 }
 
-/* ========== 横屏手机优化 ========== */
+/* ========== 横屏手机优化（保留底Tab + 全屏棋盘） ========== */
 @media(max-height:500px) and (orientation:landscape){
   html{font-size:11px}
 
-  /* 隐藏底部导航栏，用更紧凑的布局 */
-  .mobile-nav{display:none !important}
+  /* 游戏标题栏极简紧凑 */
+  .game-header{padding:0.15rem 0.5rem;min-height:24px}
+  .game-header h1{font-size:0.75rem;letter-spacing:0.05rem}
+  .game-header .turn-info{font-size:0.6rem}
 
-  /* 游戏标题栏极简 */
-  .game-header{padding:0.2rem 0.5rem}
-  .game-header h1{font-size:0.85rem;letter-spacing:0.1rem}
-  .game-header .turn-info{font-size:0.65rem}
-
-  /* 三栏布局恢复（横屏空间足够） */
+  /* 保持单栏布局，不恢复三栏 */
   .game-body{
-    display:grid !important;
-    grid-template-columns:180px 1fr 180px !important;
-    min-height:calc(100vh - 30px) !important;
-  }
-
-  /* 左右面板恢复显示 */
-  .left-panel{
-    position:relative !important;
     display:block !important;
-    height:auto !important;
-    overflow-y:auto;padding:0.4rem;
-    border-right:1px solid var(--panel-border);
-    border-bottom:none;z-index:auto;
+    min-height:auto !important;
   }
-  .left-panel h2{font-size:0.8rem;margin-bottom:0.3rem}
-  .player-info-card{padding:0.35rem;margin-bottom:0.3rem}
-  .pi-stats{font-size:0.65rem}
-  .side-portrait{width:30px !important;height:30px !important}
 
+  /* 左右面板保持隐藏（通过 Tab 切换） */
+  .left-panel{
+    position:fixed !important;
+    display:none !important;
+  }
+  .left-panel.mobile-show{display:block !important}
   .right-panel{
-    position:relative !important;
-    display:flex !important;
-    height:auto !important;
-    overflow-y:auto;
-    border-left:1px solid var(--panel-border);
-    z-index:auto;
+    position:fixed !important;
+    display:none !important;
   }
-  .action-area h2,.log-area h2{font-size:0.8rem}
+  .right-panel.mobile-show{display:flex !important}
 
-  /* 棋盘区域 */
+  /* 底部导航栏保留但更紧凑 */
+  .mobile-nav{
+    display:flex !important;
+    height:36px !important;
+    padding:0.1rem 0 !important;
+  }
+  .mobile-nav-btn{font-size:0.6rem !important;gap:0.05rem !important}
+  .mobile-nav-btn .nav-icon{font-size:0.8rem !important}
+
+  /* 棋盘区域占满全屏 */
   .center-area{
     padding:0.2rem;overflow:auto;
     -webkit-overflow-scrolling:touch;
-    padding-bottom:0;
+    min-height:calc(100vh - 60px);
+    padding-bottom:40px;
   }
 
-  /* 关闭按钮隐藏 */
-  .mobile-panel-close{display:none !important}
+  /* 掷骰子区域在底Tab上方 */
+  .dice-roll-area{
+    bottom:38px !important;
+    padding:0.3rem !important;
+  }
+  .dice-roll-area .dice-label{font-size:0.65rem}
+  #btn-roll{font-size:0.8rem;padding:0.4rem 1.2rem;min-height:32px}
 
   /* 模态框紧凑 */
-  .modal{max-height:90vh}
-  .minigame-panel{max-height:92vh}
+  .modal{max-height:88vh;max-width:92vw !important}
+  .minigame-panel{max-height:90vh}
 
   /* 开始界面横屏优化 */
   #start-screen{
-    flex-direction:column;padding:0.8rem 1rem !important;
+    flex-direction:column;padding:0.6rem 1rem !important;
     overflow-y:auto !important;
   }
-  #start-screen h1{font-size:1.4rem;margin-top:0.2rem;margin-bottom:0.2rem}
-  #start-screen .subtitle{font-size:0.8rem;margin-bottom:0.6rem}
-  .start-hint{font-size:0.65rem !important;margin-bottom:0.4rem !important}
+  #start-screen h1{font-size:1.3rem;margin-top:0.1rem;margin-bottom:0.2rem}
+  #start-screen .subtitle{font-size:0.75rem;margin-bottom:0.4rem}
+  .start-hint{font-size:0.6rem !important;margin-bottom:0.3rem !important}
   .player-select{
     display:flex !important;
     flex-wrap:wrap;gap:0.4rem;
     max-width:none;justify-content:center;
   }
-  .player-card{width:100px !important;padding:0.35rem 0.25rem}
-  .player-card .avatar{width:40px !important;height:40px !important}
-  .start-portrait{width:40px !important;height:40px !important}
-  .player-card .pname{font-size:0.65rem}
-  .player-card .pdesc{font-size:0.5rem}
-  .mode-section{margin:0.4rem 0 !important}
-  .mode-section h3{font-size:0.75rem !important}
+  .player-card{width:95px !important;padding:0.3rem 0.2rem}
+  .player-card .avatar{width:38px !important;height:38px !important}
+  .start-portrait{width:38px !important;height:38px !important}
+  .player-card .pname{font-size:0.6rem}
+  .player-card .pdesc{font-size:0.45rem}
+  .mode-section{margin:0.3rem 0 !important}
+  .mode-section h3{font-size:0.7rem !important}
   .mode-cards{flex-direction:row !important;gap:0.4rem !important;flex-wrap:wrap;justify-content:center}
-  .mode-card{width:auto !important;max-width:160px;padding:0.4rem !important;flex:1;min-width:120px}
-  .mode-card .mode-icon img{width:28px !important;height:28px !important}
-  .mode-card .mode-name{font-size:0.7rem}
-  .mode-card .mode-desc{font-size:0.55rem}
-  #btn-start-game{font-size:0.85rem;padding:0.5rem 1.5rem;margin-top:0.5rem;margin-bottom:0.5rem}
+  .mode-card{width:auto !important;max-width:150px;padding:0.35rem !important;flex:1;min-width:110px}
+  .mode-card .mode-icon img{width:26px !important;height:26px !important}
+  .mode-card .mode-name{font-size:0.65rem}
+  .mode-card .mode-desc{font-size:0.5rem}
+  #btn-start-game{font-size:0.8rem;padding:0.45rem 1.3rem;margin-top:0.3rem;margin-bottom:0.3rem}
 }
 
 </style>
@@ -12358,9 +12357,9 @@ function addLog(text, type = '') {
     }
   }
 
-  // 面板切换
+  // 面板切换（横屏竖屏都用 Tab 切换）
   window.mobileShowPanel = function(panel){
-    if(!isMobile() || isLandscapeMobile()) return;
+    if(!isMobile()) return;
     const left = document.querySelector('.left-panel');
     const right = document.querySelector('.right-panel');
     const navBtns = document.querySelectorAll('.mobile-nav-btn');
@@ -12405,10 +12404,10 @@ function addLog(text, type = '') {
 
     let scale;
     if(isLandscapeMobile()){
-      // 横屏：三栏布局，中间区域宽度约等于 vw - 360（左180+右180）
-      const centerW = vw - 360;
-      const centerH = vh - 30; // 减去 header
-      scale = Math.min(centerW / boardW, centerH / boardH, 1);
+      // 横屏：全屏给棋盘，减去 header 和底部 Tab 栏
+      const availW = vw - 8;
+      const availH = vh - 64; // header ~24px + tab ~36px + padding
+      scale = Math.min(availW / boardW, availH / boardH, 1);
     } else {
       // 竖屏
       scale = Math.min((vw - 8) / boardW, 1);
@@ -12437,18 +12436,11 @@ function addLog(text, type = '') {
     });
   }
 
-  // 横屏时清除竖屏面板状态
+  // 横屏/竖屏切换时重新计算
   function onOrientationAdjust(){
     setTimeout(()=>{
       scaleBoardForMobile();
       checkRotateHint();
-      // 横屏模式下，清除 mobile-show 类（由 CSS grid 控制面板显示）
-      if(isLandscapeMobile()){
-        const left = document.querySelector('.left-panel');
-        const right = document.querySelector('.right-panel');
-        if(left) left.classList.remove('mobile-show');
-        if(right) right.classList.remove('mobile-show');
-      }
     }, 300);
   }
 
