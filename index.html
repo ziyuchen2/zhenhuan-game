@@ -2400,15 +2400,48 @@ body{font-family:'Microsoft YaHei UI','PingFang SC','Noto Sans SC','Microsoft Ya
   .mobile-nav{display:block}
 
   /* 开始界面适配 */
-  #start-screen h1{font-size:2rem;letter-spacing:0.4rem}
-  #start-screen .subtitle{font-size:1rem;margin-bottom:1.5rem}
-  .player-select{gap:0.8rem}
-  .player-card{width:110px;padding:0.7rem}
-  .player-card .pname{font-size:0.85rem}
-  .player-card .pdesc{font-size:0.6rem}
-  .mode-cards{flex-direction:column;align-items:center}
-  .mode-card{width:90%;max-width:320px}
-  #btn-start-game{font-size:1rem;padding:0.8rem 2rem}
+  #start-screen{
+    overflow-y:auto !important;
+    -webkit-overflow-scrolling:touch;
+    justify-content:flex-start !important;
+    padding:1.5rem 0.8rem 2rem !important;
+  }
+  #start-screen h1{font-size:1.8rem;letter-spacing:0.3rem;margin-top:0.5rem}
+  #start-screen .subtitle{font-size:0.9rem;margin-bottom:1rem}
+  .start-hint{font-size:0.75rem !important;margin-bottom:0.8rem !important}
+  .player-select{
+    gap:0.6rem;
+    display:grid !important;
+    grid-template-columns:repeat(3, 1fr);
+    max-width:380px;
+    margin:0 auto 1rem;
+    padding:0 0.3rem;
+  }
+  .player-select .player-card:nth-child(4),
+  .player-select .player-card:nth-child(5),
+  .player-select .player-card:nth-child(6){
+    /* 如果是5或6个角色，后排居中 */
+  }
+  .player-card{width:auto !important;padding:0.5rem 0.3rem;min-width:0}
+  .player-card .avatar{width:56px !important;height:56px !important;margin:0 auto 0.4rem}
+  .start-portrait{width:56px !important;height:56px !important}
+  .player-card .pname{font-size:0.75rem}
+  .player-card .pdesc{font-size:0.55rem;line-height:1.3}
+  .player-card .ptalent-name{font-size:0.6rem}
+  .player-card .ptalent-desc{font-size:0.5rem}
+  .player-card .check{width:18px;height:18px;font-size:0.65rem}
+  .mode-section{margin:0.8rem 0 !important}
+  .mode-section h3{font-size:0.9rem !important;margin-bottom:0.5rem}
+  .mode-cards{flex-direction:column;align-items:center;gap:0.6rem !important}
+  .mode-card{width:90%;max-width:320px;padding:0.6rem !important}
+  .mode-card .mode-icon img{width:40px !important;height:40px !important}
+  .mode-card .mode-name{font-size:0.85rem}
+  .mode-card .mode-desc{font-size:0.65rem}
+  #btn-start-game{
+    font-size:1rem;padding:0.8rem 2rem;
+    margin-top:1rem;margin-bottom:1.5rem;
+    position:relative;z-index:10;
+  }
 
   /* 主布局：三栏 → 单栏 */
   .game-body{
@@ -2458,20 +2491,31 @@ body{font-family:'Microsoft YaHei UI','PingFang SC','Noto Sans SC','Microsoft Ya
 
   /* 中间棋盘：缩放适配 */
   .center-area{
-    padding:0.3rem;overflow:hidden;
-    min-height:calc(100vh - 100px);
+    padding:0.3rem;overflow:auto;
+    -webkit-overflow-scrolling:touch;
+    min-height:auto;
     display:flex;align-items:flex-start;justify-content:center;
+    padding-bottom:70px;
   }
   .board-wrapper{
-    transform-origin:top center;
+    transform-origin:top left;
     /* 通过 JS 计算缩放比 */
   }
 
-  /* 棋盘底部留出导航栏空间 */
-  .center-area{padding-bottom:60px}
+  /* 骰子按钮更大更易触摸 */
+  #btn-roll{font-size:1.1rem;padding:0.8rem 2rem;min-height:44px}
 
-  /* 骰子按钮更大 */
-  #btn-roll{font-size:1rem;padding:0.6rem 1.6rem}
+  /* 格子更容易点击 */
+  .tile{min-height:44px}
+
+  /* 掷骰子区域固定在底部导航栏上方 */
+  .dice-roll-area{
+    position:fixed;bottom:52px;left:0;right:0;
+    z-index:5400;background:rgba(255,250,245,0.95);
+    backdrop-filter:blur(8px);
+    padding:0.5rem;border-top:1px solid var(--panel-border);
+    display:flex;flex-direction:column;align-items:center;gap:0.3rem;
+  }
 
   /* 模态框适配 */
   .modal{width:94% !important;max-width:none !important;padding:1.2rem !important;max-height:85vh;overflow-y:auto}
@@ -2523,12 +2567,22 @@ body{font-family:'Microsoft YaHei UI','PingFang SC','Noto Sans SC','Microsoft Ya
 
 @media(max-width:480px){
   html{font-size:12px}
-  #start-screen h1{font-size:1.6rem;letter-spacing:0.2rem}
-  .player-select{gap:0.5rem}
-  .player-card{width:90px;padding:0.5rem}
-  .player-card .portrait-fallback{font-size:1.6rem !important}
+  #start-screen h1{font-size:1.5rem;letter-spacing:0.15rem}
+  #start-screen .subtitle{font-size:0.8rem}
+  .player-select{
+    grid-template-columns:repeat(2, 1fr) !important;
+    max-width:280px;gap:0.5rem;
+  }
+  .player-card .avatar{width:48px !important;height:48px !important}
+  .start-portrait{width:48px !important;height:48px !important}
+  .player-card .pname{font-size:0.7rem}
+  .player-card .pdesc{font-size:0.5rem}
+  .player-card .portrait-fallback{font-size:1.4rem !important}
+  .mode-card{padding:0.5rem !important}
+  .mode-card .mode-icon img{width:32px !important;height:32px !important}
   .center-turn-banner{font-size:0.7rem;padding:0.3rem 0.8rem}
   #btn-roll{font-size:0.9rem;padding:0.5rem 1.2rem}
+  #btn-start-game{font-size:0.9rem;padding:0.7rem 1.5rem}
 }
 
 </style>
@@ -12178,17 +12232,20 @@ function addLog(text, type = '') {
     if(!isMobile()){
       board.style.transform = '';
       board.style.marginBottom = '';
+      board.style.marginLeft = '';
       return;
     }
     const vw = window.innerWidth;
     const boardW = 1284;
-    const scale = Math.min((vw - 16) / boardW, 1);
-    board.style.transform = `scale(${scale})`;
-    board.style.transformOrigin = 'top center';
-    // 缩放后修正高度
     const boardH = 980;
+    const scale = Math.min((vw - 8) / boardW, 1);
+    board.style.transform = `scale(${scale})`;
+    board.style.transformOrigin = 'top left';
+    // 缩放后修正容器高度和居中
     const scaledH = boardH * scale;
+    const scaledW = boardW * scale;
     board.style.marginBottom = `${scaledH - boardH}px`;
+    board.style.marginLeft = `${Math.max(0,(vw - scaledW) / 2)}px`;
   }
 
   // 给左/右面板添加关闭按钮（仅移动端显示）
