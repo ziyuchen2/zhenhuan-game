@@ -2489,17 +2489,26 @@ body{font-family:'Microsoft YaHei UI','PingFang SC','Noto Sans SC','Microsoft Ya
     font-family:inherit;
   }
 
-  /* 中间棋盘：缩放适配 */
+  /* 中间棋盘：可滚动视窗（不缩放） */
   .center-area{
-    padding:0.3rem;overflow:auto;
+    padding:0;overflow:auto;
     -webkit-overflow-scrolling:touch;
     min-height:auto;
-    display:flex;align-items:flex-start;justify-content:center;
-    padding-bottom:70px;
+    display:block;
+    padding-bottom:52px; /* 底部Tab高度 */
+    scroll-behavior:auto; /* JS 控制滚动 */
   }
   .board-wrapper{
-    transform-origin:top left;
-    /* 通过 JS 计算缩放比 */
+    /* 不缩放，保持原始 1284x980 尺寸 */
+    transform:none !important;
+    margin-bottom:0 !important;
+    margin-left:0 !important;
+  }
+
+  /* 全图模式下的棋盘缩放 */
+  .center-area.fullmap-mode .board-wrapper{
+    transform-origin:top left !important;
+    /* scale 由 JS 设置 */
   }
 
   /* 骰子按钮更大更易触摸 */
@@ -2515,6 +2524,28 @@ body{font-family:'Microsoft YaHei UI','PingFang SC','Noto Sans SC','Microsoft Ya
     backdrop-filter:blur(8px);
     padding:0.5rem;border-top:1px solid var(--panel-border);
     display:flex;flex-direction:column;align-items:center;gap:0.3rem;
+  }
+
+  /* 查看完整地图按钮 */
+  #btn-fullmap{
+    position:fixed;
+    bottom:58px;right:8px;
+    z-index:5500;
+    width:44px;height:44px;
+    border-radius:50%;
+    border:1.5px solid var(--panel-border);
+    background:rgba(255,250,245,0.95);
+    backdrop-filter:blur(8px);
+    box-shadow:0 4px 12px rgba(186,169,160,0.25);
+    display:flex;align-items:center;justify-content:center;
+    font-size:1.2rem;
+    cursor:pointer;
+    transition:all 0.3s;
+  }
+  #btn-fullmap:active{transform:scale(0.9)}
+  #btn-fullmap.active{
+    background:rgba(216,179,141,0.25);
+    border-color:#d8b38d;
   }
 
   /* 模态框适配 */
@@ -2661,12 +2692,20 @@ body{font-family:'Microsoft YaHei UI','PingFang SC','Noto Sans SC','Microsoft Ya
   .mobile-nav-btn{font-size:0.6rem !important;gap:0.05rem !important}
   .mobile-nav-btn .nav-icon{font-size:0.8rem !important}
 
-  /* 棋盘区域占满全屏 */
+  /* 棋盘区域：横屏可滚动视窗 */
   .center-area{
-    padding:0.2rem;overflow:auto;
+    padding:0;overflow:auto;
     -webkit-overflow-scrolling:touch;
     min-height:calc(100vh - 60px);
-    padding-bottom:40px;
+    padding-bottom:38px;
+  }
+
+  /* 全图按钮横屏位置 */
+  #btn-fullmap{
+    bottom:42px !important;
+    right:6px !important;
+    width:36px !important;height:36px !important;
+    font-size:1rem !important;
   }
 
   /* 掷骰子区域在底Tab上方 */
@@ -12299,6 +12338,9 @@ function addLog(text, type = '') {
 })();
 </script>
 
+<!-- 查看完整地图按钮（移动端） -->
+<button id="btn-fullmap" title="查看完整地图" style="display:none" onclick="toggleFullMap()">🗺️</button>
+
 <!-- 横屏提示遮罩 -->
 <div id="rotate-hint">
   <svg class="rotate-icon" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -12337,6 +12379,7 @@ function addLog(text, type = '') {
   const isLandscape = () => window.innerWidth > window.innerHeight;
   const isLandscapeMobile = () => window.innerHeight <= 500 && isLandscape();
   let rotateHintDismissed = false;
+  let fullMapMode = false;
 
   // 横屏提示
   window.dismissRotateHint = function(){
@@ -12354,6 +12397,101 @@ function addLog(text, type = '') {
       hint.classList.add('game-active');
     } else {
       hint.classList.remove('game-active');
+    }
+  }
+
+  // ========== 镜头追踪 ==========
+  function scrollToTile(positionIndex, smooth){
+    if(!isMobile() || fullMapMode) return;
+    const centerArea = document.querySelector('.center-area');
+    if(!centerArea) return;
+    if(typeof getTilePositions !== 'function') return;
+    const positions = getTilePositions();
+    if(!positions[positionIndex]) return;
+    const tileX = positions[positionIndex].x;
+    const tileY = positions[positionIndex].y;
+    const tileSize = 78;
+    const viewW = centerArea.clientWidth;
+    const viewH = centerArea.clientHeight;
+    const scrollX = tileX + tileSize / 2 - viewW / 2;
+    const scrollY = tileY + tileSize / 2 - viewH / 2;
+    centerArea.scrollTo({
+      left: Math.max(0, scrollX),
+      top: Math.max(0, scrollY),
+      behavior: smooth ? 'smooth' : 'auto'
+    });
+  }
+
+  function trackCurrentPlayer(smooth){
+    if(!isMobile() || fullMapMode) return;
+    if(typeof gameState === 'undefined' || !gameState.players || gameState.players.length === 0) return;
+    if(gameState.gameOver) return;
+    const player = gameState.players[gameState.currentPlayerIndex];
+    if(!player || player.status === 'bankrupt') return;
+    scrollToTile(player.position, smooth);
+  }
+
+  // ========== 全图模式 ==========
+  window.toggleFullMap = function(){
+    const centerArea = document.querySelector('.center-area');
+    const board = document.querySelector('.board-wrapper');
+    const btn = document.getElementById('btn-fullmap');
+    if(!centerArea || !board || !btn) return;
+    fullMapMode = !fullMapMode;
+    if(fullMapMode){
+      centerArea.classList.add('fullmap-mode');
+      btn.classList.add('active');
+      btn.textContent = '🔍';
+      btn.title = '回到追踪模式';
+      const vw = centerArea.clientWidth;
+      const vh = centerArea.clientHeight;
+      const boardW = 1284;
+      const boardH = 980;
+      const scale = Math.min(vw / boardW, vh / boardH, 1);
+      board.style.transform = `scale(${scale})`;
+      board.style.transformOrigin = 'top left';
+      board.style.marginBottom = `${boardH * scale - boardH}px`;
+      board.style.marginLeft = `${Math.max(0, (vw - boardW * scale) / 2)}px`;
+      centerArea.scrollTo({left:0, top:0, behavior:'auto'});
+    } else {
+      centerArea.classList.remove('fullmap-mode');
+      btn.classList.remove('active');
+      btn.textContent = '🗺️';
+      btn.title = '查看完整地图';
+      board.style.transform = 'none';
+      board.style.marginBottom = '0';
+      board.style.marginLeft = '0';
+      setTimeout(() => trackCurrentPlayer(true), 100);
+    }
+  };
+
+  function updateFullMapButton(){
+    const btn = document.getElementById('btn-fullmap');
+    if(!btn) return;
+    const gc = document.getElementById('game-container');
+    const gameActive = gc && gc.style.display !== 'none';
+    btn.style.display = (isMobile() && gameActive) ? 'flex' : 'none';
+  }
+
+  function resetBoardView(){
+    const board = document.querySelector('.board-wrapper');
+    const centerArea = document.querySelector('.center-area');
+    if(!board || !centerArea) return;
+    if(!isMobile()){
+      board.style.transform = '';
+      board.style.marginBottom = '';
+      board.style.marginLeft = '';
+      centerArea.classList.remove('fullmap-mode');
+      fullMapMode = false;
+      return;
+    }
+    if(fullMapMode){
+      window.toggleFullMap();
+      window.toggleFullMap();
+    } else {
+      board.style.transform = 'none';
+      board.style.marginBottom = '0';
+      board.style.marginLeft = '0';
     }
   }
 
@@ -12384,46 +12522,6 @@ function addLog(text, type = '') {
     // 'board' 不需要显示面板
   };
 
-  // 棋盘自适应缩放
-  function scaleBoardForMobile(){
-    const board = document.querySelector('.board-wrapper');
-    if(!board) return;
-
-    // 电脑端不缩放
-    if(window.innerWidth > 900 && window.innerHeight > 500){
-      board.style.transform = '';
-      board.style.marginBottom = '';
-      board.style.marginLeft = '';
-      return;
-    }
-
-    const vw = window.innerWidth;
-    const vh = window.innerHeight;
-    const boardW = 1284;
-    const boardH = 980;
-
-    let scale;
-    if(isLandscapeMobile()){
-      // 横屏：全屏给棋盘，减去 header 和底部 Tab 栏
-      const availW = vw - 8;
-      const availH = vh - 64; // header ~24px + tab ~36px + padding
-      scale = Math.min(availW / boardW, availH / boardH, 1);
-    } else {
-      // 竖屏
-      scale = Math.min((vw - 8) / boardW, 1);
-    }
-
-    board.style.transform = `scale(${scale})`;
-    board.style.transformOrigin = 'top left';
-    // 缩放后修正容器高度和居中
-    const scaledH = boardH * scale;
-    const scaledW = boardW * scale;
-    board.style.marginBottom = `${scaledH - boardH}px`;
-    const container = board.parentElement;
-    const containerW = container ? container.clientWidth : vw;
-    board.style.marginLeft = `${Math.max(0,(containerW - scaledW) / 2)}px`;
-  }
-
   // 给左/右面板添加关闭按钮（仅移动端显示）
   function injectMobileCloseButtons(){
     const panels = [document.querySelector('.left-panel'), document.querySelector('.right-panel')];
@@ -12436,51 +12534,74 @@ function addLog(text, type = '') {
     });
   }
 
-  // 横屏/竖屏切换时重新计算
   function onOrientationAdjust(){
     setTimeout(()=>{
-      scaleBoardForMobile();
+      resetBoardView();
       checkRotateHint();
+      updateFullMapButton();
+      setTimeout(() => trackCurrentPlayer(false), 200);
     }, 300);
   }
 
-  // 初始化
   function initMobile(){
-    scaleBoardForMobile();
+    resetBoardView();
     injectMobileCloseButtons();
     checkRotateHint();
+    updateFullMapButton();
   }
 
-  // 监听
-  window.addEventListener('resize', () => { scaleBoardForMobile(); checkRotateHint(); });
+  window.addEventListener('resize', () => {
+    resetBoardView();
+    checkRotateHint();
+    updateFullMapButton();
+  });
   window.addEventListener('orientationchange', onOrientationAdjust);
 
-  // DOM Ready
   if(document.readyState === 'loading'){
     document.addEventListener('DOMContentLoaded', initMobile);
   } else {
     initMobile();
   }
 
-  // 游戏开始后重新缩放 + 显示横屏提示
   const origStartGame = window.startGame;
   if(typeof origStartGame === 'function'){
     window.startGame = function(){
       origStartGame.apply(this, arguments);
-      setTimeout(()=>{ scaleBoardForMobile(); checkRotateHint(); }, 300);
+      setTimeout(()=>{
+        resetBoardView();
+        checkRotateHint();
+        updateFullMapButton();
+        setTimeout(() => trackCurrentPlayer(false), 300);
+      }, 300);
     };
   }
 
-  // 也在 MutationObserver 监听 game-container 显示时缩放
   const gc = document.getElementById('game-container');
   if(gc){
     new MutationObserver(() => {
       if(gc.style.display !== 'none'){
-        setTimeout(scaleBoardForMobile, 100);
+        setTimeout(()=>{
+          resetBoardView();
+          updateFullMapButton();
+          setTimeout(() => trackCurrentPlayer(false), 200);
+        }, 100);
         setTimeout(checkRotateHint, 150);
       }
     }).observe(gc, {attributes:true, attributeFilter:['style']});
   }
+
+  // 钩住 renderTokens，每次 token 重绘后追踪当前玩家
+  const origRenderTokens = window.renderTokens;
+  if(typeof origRenderTokens === 'function'){
+    window.renderTokens = function(){
+      origRenderTokens.apply(this, arguments);
+      if(isMobile() && !fullMapMode){
+        setTimeout(() => trackCurrentPlayer(true), 120);
+      }
+    };
+  }
+
+  window._mobileTrackPlayer = trackCurrentPlayer;
 })();
 </script>
 
